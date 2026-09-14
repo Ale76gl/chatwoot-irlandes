@@ -88,20 +88,20 @@ const isMessageSticker = computed(() => {
         icon="i-lucide-lock-keyhole"
         class="size-3.5"
       />
-      <Icon
+      <span
         v-else-if="messageByAgent"
-        icon="i-lucide-undo-2"
-        class="size-3.5" style="color: #16a34a"
+        class="i-lucide-undo-2 size-3.5"
+        style="color: #16a34a"
       />
       <Icon
         v-else-if="isMessageAnActivity"
         icon="i-lucide-info"
         class="size-3.5"
       />
-      <Icon
+      <span
         v-else
-        icon="i-lucide-redo-2"
-        class="size-3.5" style="color: #dc2626"
+        class="i-lucide-redo-2 size-3.5"
+        style="color: #dc2626"
       />
     </template>
 
@@ -116,20 +116,20 @@ const isMessageSticker = computed(() => {
           icon="i-lucide-lock-keyhole"
           class="inline-block align-middle size-3.5 ltr:mr-1 rtl:ml-1"
         />
-        <Icon
+        <span
           v-else-if="messageByAgent"
-          icon="i-lucide-undo-2"
-          class="inline-block align-middle size-3.5 ltr:mr-1 rtl:ml-1" style="color: #16a34a"
+          class="inline-block align-middle i-lucide-undo-2 size-3.5 ltr:mr-1 rtl:ml-1"
+          style="color: #16a34a"
         />
         <Icon
           v-else-if="isMessageAnActivity"
           icon="i-lucide-info"
           class="inline-block align-middle size-3.5 ltr:mr-1 rtl:ml-1"
         />
-        <Icon
+        <span
           v-else
-          icon="i-lucide-redo-2"
-          class="inline-block align-middle size-3.5 ltr:mr-1 rtl:ml-1" style="color: #dc2626"
+          class="inline-block align-middle i-lucide-redo-2 size-3.5 ltr:mr-1 rtl:ml-1"
+          style="color: #dc2626"
         />
       </template>
       <span
