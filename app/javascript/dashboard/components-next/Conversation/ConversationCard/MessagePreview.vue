@@ -91,7 +91,7 @@ const isMessageSticker = computed(() => {
       <Icon
         v-else-if="messageByAgent"
         icon="i-lucide-undo-2"
-        class="size-3.5 text-n-teal-11"
+        class="size-3.5 text-[#16A34A]"
       />
       <Icon
         v-else-if="isMessageAnActivity"
@@ -101,7 +101,7 @@ const isMessageSticker = computed(() => {
       <Icon
         v-else
         icon="i-lucide-redo-2"
-        class="size-3.5 text-n-ruby-11"
+        class="size-3.5 text-[#DC2626]"
       />
     </template>
 
@@ -119,7 +119,7 @@ const isMessageSticker = computed(() => {
         <Icon
           v-else-if="messageByAgent"
           icon="i-lucide-undo-2"
-          class="inline-block align-middle size-3.5 text-n-teal-11 ltr:mr-1 rtl:ml-1"
+          class="inline-block align-middle size-3.5 text-[#16A34A] ltr:mr-1 rtl:ml-1"
         />
         <Icon
           v-else-if="isMessageAnActivity"
@@ -129,7 +129,7 @@ const isMessageSticker = computed(() => {
         <Icon
           v-else
           icon="i-lucide-redo-2"
-          class="inline-block align-middle size-3.5 text-n-ruby-11 ltr:mr-1 rtl:ml-1"
+          class="inline-block align-middle size-3.5 text-[#DC2626] ltr:mr-1 rtl:ml-1"
         />
       </template>
       <span
