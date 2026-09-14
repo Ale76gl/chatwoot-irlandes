@@ -88,7 +88,10 @@ class Meta::CommentEventService
   def comments_inbox(source_channel)
     account = source_channel.account
     channel = find_comments_channel(account, source_channel)
-    return channel.inbox if channel.present?
+    if channel.present?
+      channel.inbox.update!(enable_auto_assignment: false) if channel.inbox.enable_auto_assignment?
+      return channel.inbox
+    end
 
     source_channel.with_lock do
       find_comments_channel(account, source_channel)&.inbox || create_comments_inbox(account, source_channel)
@@ -110,7 +113,7 @@ class Meta::CommentEventService
           'meta_source_channel_id' => source_channel.id
         }
       )
-      inbox = account.inboxes.create!(name: INBOX_NAMES.fetch(provider), channel: channel, enable_auto_assignment: true)
+      inbox = account.inboxes.create!(name: INBOX_NAMES.fetch(provider), channel: channel, enable_auto_assignment: false)
       member_ids = source_channel.inbox.member_ids
       inbox.add_members(member_ids) if member_ids.present?
       inbox
