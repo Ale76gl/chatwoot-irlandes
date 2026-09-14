@@ -69,17 +69,21 @@ export default {
         class="-mt-0.5 align-middle text-n-slate-11 inline-block"
         icon="lock-closed"
       />
-      <fluent-icon
+      <span
         v-else-if="messageByAgent"
-        size="16"
-        class="-mt-0.5 align-middle text-n-slate-11 inline-block"
-        icon="arrow-reply"
+        class="-mt-0.5 align-middle inline-block i-lucide-undo-2 size-4"
+        style="color: #16a34a"
       />
       <fluent-icon
         v-else-if="isMessageAnActivity"
         size="16"
         class="-mt-0.5 align-middle text-n-slate-11 inline-block"
         icon="info"
+      />
+      <span
+        v-else
+        class="-mt-0.5 align-middle inline-block i-lucide-redo-2 size-4"
+        style="color: #dc2626"
       />
     </template>
     <span v-if="message.content && isMessageSticker">
