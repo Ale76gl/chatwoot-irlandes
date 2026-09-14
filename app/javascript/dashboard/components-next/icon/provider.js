@@ -83,6 +83,13 @@ export function useChannelBrandIcon(inbox) {
     const type = inboxDetails.channel_type;
     let icon = channelTypeBrandIconMap[type];
 
+    if (type === INBOX_TYPES.API) {
+      const commentsProvider =
+        inboxDetails.additional_attributes?.meta_comment_provider;
+      if (commentsProvider === 'facebook') icon = 'i-logos-facebook';
+      if (commentsProvider === 'instagram') icon = 'i-woot-instagram-color';
+    }
+
     if (type === INBOX_TYPES.EMAIL && inboxDetails.provider) {
       if (Object.keys(providerBrandIconMap).includes(inboxDetails.provider)) {
         icon = providerBrandIconMap[inboxDetails.provider];

@@ -42,6 +42,22 @@ class ChatwootFbProvider < Facebook::Messenger::Configuration::Providers::Base
   end
 end
 
+# The facebook-messenger gem intentionally ignores Page webhook entries that do
+# not contain a `messaging` payload. Capture Page feed comment events before the
+# gem continues processing Messenger events as usual.
+module IrlandesFacebookCommentWebhook
+  def trigger(events)
+    if Array(events['entry']).any? { |entry| entry['changes'].present? }
+      Webhooks::MetaCommentsJob.perform_later('facebook', events)
+    end
+
+    super
+  end
+end
+
+Facebook::Messenger::Server.prepend(IrlandesFacebookCommentWebhook) unless
+  Facebook::Messenger::Server.ancestors.include?(IrlandesFacebookCommentWebhook)
+
 Rails.application.reloader.to_prepare do
   Facebook::Messenger.configure do |config|
     config.provider = ChatwootFbProvider.new
