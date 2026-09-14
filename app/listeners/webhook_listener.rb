@@ -26,6 +26,8 @@ class WebhookListener < BaseListener
     message = extract_message_and_account(event)[0]
     inbox = message.inbox
 
+    Webhooks::MetaCommentReplyJob.perform_later(message.id) if meta_comment_reply?(message)
+
     return unless message.webhook_sendable?
 
     payload = message.webhook_data.merge(event: __method__.to_s)
@@ -92,6 +94,13 @@ class WebhookListener < BaseListener
   end
 
   private
+
+  def meta_comment_reply?(message)
+    return false unless message.outgoing? && !message.private?
+
+    message.inbox.channel_type == 'Channel::Api' &&
+      message.inbox.channel.additional_attributes.to_h['meta_comment_provider'].present?
+  end
 
   def handle_typing_status(event_name, event)
     conversation = event.data[:conversation]

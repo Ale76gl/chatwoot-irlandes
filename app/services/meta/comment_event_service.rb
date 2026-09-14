@@ -73,6 +73,7 @@ class Meta::CommentEventService
     inbox = comments_inbox(source_channel)
     contact_inbox = find_or_create_contact_inbox(inbox, event)
     conversation = find_or_create_conversation(contact_inbox, event)
+    event[:creative] = creative_details(source_channel, event) if conversation.messages.none?
     upsert_message(conversation, event)
   end
 
@@ -167,9 +168,10 @@ class Meta::CommentEventService
   def message_params(event)
     {
       message_type: 'incoming',
-      content: event[:text],
+      content: message_content(event),
       source_id: event[:comment_id],
       external_created_at: external_created_at(event[:created_at]),
+      attachments: creative_attachment(event[:creative]),
       content_attributes: {
         meta_comment_provider: provider,
         meta_comment_id: event[:comment_id],
@@ -177,6 +179,52 @@ class Meta::CommentEventService
         meta_thread_id: event[:thread_id]
       }.compact
     }
+  end
+
+  def message_content(event)
+    creative = event[:creative].to_h.with_indifferent_access
+    return event[:text] if creative.blank?
+
+    context = ['📌 Publicación original']
+    context << creative[:caption].to_s.truncate(500) if creative[:caption].present?
+    context << creative[:permalink] if creative[:permalink].present?
+    context << "\n💬 Comentario\n#{event[:text]}"
+    context.join("\n")
+  end
+
+  def creative_attachment(creative)
+    media_url = creative.to_h.with_indifferent_access[:media_url]
+    return if media_url.blank?
+
+    [Down.download(media_url)]
+  rescue StandardError => e
+    Rails.logger.warn("Meta creative download failed: #{e.message}")
+    nil
+  end
+
+  def creative_details(source_channel, event)
+    provider == 'facebook' ? facebook_creative(source_channel, event) : instagram_creative(source_channel, event)
+  rescue StandardError => e
+    Rails.logger.warn("Meta creative lookup failed: #{e.message}")
+    {}
+  end
+
+  def facebook_creative(channel, event)
+    response = HTTParty.get(
+      "https://graph.facebook.com/#{GlobalConfigService.load('FACEBOOK_API_VERSION', 'v22.0')}/#{event[:thread_id]}",
+      query: { fields: 'message,permalink_url,full_picture', access_token: channel.page_access_token }
+    )
+    body = response.parsed_response.to_h.with_indifferent_access
+    { caption: body[:message], permalink: body[:permalink_url], media_url: body[:full_picture] }.compact
+  end
+
+  def instagram_creative(channel, event)
+    response = HTTParty.get(
+      "https://graph.instagram.com/#{GlobalConfigService.load('INSTAGRAM_API_VERSION', 'v22.0')}/#{event[:thread_id]}",
+      query: { fields: 'caption,media_type,media_url,thumbnail_url,permalink', access_token: channel.access_token }
+    )
+    body = response.parsed_response.to_h.with_indifferent_access
+    { caption: body[:caption], permalink: body[:permalink], media_url: body[:thumbnail_url].presence || body[:media_url] }.compact
   end
 
   def external_created_at(value)
