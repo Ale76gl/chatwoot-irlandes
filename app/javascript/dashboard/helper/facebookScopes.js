@@ -9,6 +9,7 @@ export const FACEBOOK_PAGE_SCOPES = [
 export const INSTAGRAM_SCOPES = [
   'instagram_basic',
   'instagram_manage_messages',
+  'instagram_manage_comments',
 ];
 
 export const buildFacebookLoginScopes = ({
