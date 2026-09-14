@@ -50,13 +50,14 @@ class Meta::CommentEventService
   end
 
   def normalize_facebook(entry, value)
+    author = value[:from].to_h.with_indifferent_access
     {
       account_id: entry[:id].to_s,
       comment_id: value[:comment_id].to_s,
-      author_id: value[:sender_id],
-      author_name: value[:sender_name],
+      author_id: author[:id].presence || value[:sender_id],
+      author_name: author[:name].presence || value[:sender_name],
       text: value[:message].to_s,
-      thread_id: value[:post_id],
+      thread_id: value[:post_id].presence || value.dig(:post, :id),
       parent_id: value[:parent_id],
       created_at: value[:created_time].presence || entry[:time]
     }
