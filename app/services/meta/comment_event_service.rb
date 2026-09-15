@@ -199,7 +199,23 @@ class Meta::CommentEventService
     media_url = creative.to_h.with_indifferent_access[:media_url]
     return if media_url.blank?
 
-    [Down.download(media_url)]
+    downloaded = Down.download(media_url)
+    filename = downloaded.respond_to?(:original_filename) ? downloaded.original_filename : nil
+    filename = File.basename(URI.parse(media_url).path) if filename.blank?
+    filename = 'meta-creative' if filename.blank?
+    content_type = if downloaded.respond_to?(:content_type)
+                     downloaded.content_type
+                   else
+                     Marcel::MimeType.for(downloaded, name: filename)
+                   end
+
+    [
+      ActionDispatch::Http::UploadedFile.new(
+        tempfile: downloaded,
+        filename: filename,
+        type: content_type
+      )
+    ]
   rescue StandardError => e
     Rails.logger.warn("Meta creative download failed: #{e.message}")
     nil
