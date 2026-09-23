@@ -48,7 +48,7 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ghcr.io/ale76gl/chatwoot-irlandes:4.17.1-irlandes-17
+            ghcr.io/ale76gl/chatwoot-irlandes:4.17.1-irlandes-18
             ghcr.io/ale76gl/chatwoot-irlandes:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
