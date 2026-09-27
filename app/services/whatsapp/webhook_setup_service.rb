@@ -1,6 +1,13 @@
 class Whatsapp::WebhookSetupService
   attr_reader :registration_error
 
+  COEXISTENCE_WEBHOOK_FIELDS = %w[
+    messages
+    history
+    smb_app_state_sync
+    smb_message_echoes
+  ].freeze
+
   def initialize(channel, waba_id = nil, access_token = nil, is_coexistence: nil)
     @channel = channel
     @waba_id = waba_id || channel.provider_config['business_account_id']
@@ -81,9 +88,11 @@ class Whatsapp::WebhookSetupService
     raise "Webhook setup failed: #{e.message}"
   end
 
-  # Subscribe to `calls` only when voice calling is enabled on the inbox
+  # Coexistence needs app history/state-sync/echo events in addition to normal messages.
+  # Keeping this full set on every subscription also prevents a later re-registration from
+  # accidentally dropping coexistence fields at WABA scope.
   def subscribed_fields
-    fields = %w[messages smb_message_echoes]
+    fields = COEXISTENCE_WEBHOOK_FIELDS.dup
     fields << 'calls' if calls_enabled_on_waba?
     fields
   end
