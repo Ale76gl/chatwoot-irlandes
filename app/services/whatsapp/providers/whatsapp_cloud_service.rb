@@ -240,7 +240,22 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
   end
 
   def send_interactive_text_message(phone_number, message)
-    payload = create_payload_based_on_items(message)
+    cta = message.content_attributes['cta_url'] || message.content_attributes[:cta_url]
+    payload = if cta.present?
+                {
+                  type: 'cta_url',
+                  body: { text: message.outgoing_content },
+                  action: {
+                    name: 'cta_url',
+                    parameters: {
+                      display_text: cta['display_text'] || cta[:display_text] || 'Ver catálogo',
+                      url: cta['url'] || cta[:url]
+                    }
+                  }
+                }
+              else
+                create_payload_based_on_items(message)
+              end
 
     response = HTTParty.post(
       "#{phone_id_path}/messages",
