@@ -82,6 +82,7 @@ class Message < ApplicationRecord
 
   # when you have a temperory id in your frontend and want it echoed back via action cable
   attr_accessor :echo_id
+  attr_accessor :skip_history_callbacks
   # Transient flag used to skip waiting_since clearing for specific bot/system messages.
   attr_accessor :preserve_waiting_since
 
@@ -190,6 +191,7 @@ class Message < ApplicationRecord
       id: id,
       inbox: inbox.webhook_data,
       message_type: message_type,
+      status: status,
       private: private,
       sender: sender.try(:webhook_data),
       source_id: source_id
@@ -323,6 +325,8 @@ class Message < ApplicationRecord
   end
 
   def execute_after_create_commit_callbacks
+    return if skip_history_callbacks
+
     # rails issue with order of active record callbacks being executed https://github.com/rails/rails/issues/20911
     reopen_conversation
     mark_pending_conversation_as_open_for_human_response

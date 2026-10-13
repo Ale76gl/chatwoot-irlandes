@@ -91,25 +91,63 @@ export const classifySignupEvent = data => {
   return { type: SIGNUP_RESULT.IGNORE };
 };
 
+const isFacebookOrigin = origin => {
+  try {
+    const { hostname } = new URL(origin);
+    return hostname === 'facebook.com' || hostname.endsWith('.facebook.com');
+  } catch {
+    return false;
+  }
+};
+
+const parseMessageData = rawData => {
+  if (typeof rawData === 'string') {
+    try {
+      return JSON.parse(rawData);
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof rawData === 'object' && rawData !== null) {
+    return rawData;
+  }
+
+  return null;
+};
+
+const unwrapEmbeddedSignupPayload = data => {
+  if (data?.type === 'WA_EMBEDDED_SIGNUP') return data;
+
+  // Meta has changed the envelope used by some Facebook Login for Business
+  // responses over time. Accept one extra wrapper without relaxing the origin
+  // check or logging the sensitive payload itself.
+  if (data?.data?.type === 'WA_EMBEDDED_SIGNUP') return data.data;
+
+  return null;
+};
+
 export const createMessageHandler = onEmbeddedSignupData => {
   return event => {
-    if (!event.origin.endsWith('facebook.com')) return;
+    if (!isFacebookOrigin(event.origin)) return;
 
-    try {
-      let data;
-      if (typeof event.data === 'string') {
-        data = JSON.parse(event.data);
-      } else if (typeof event.data === 'object' && event.data !== null) {
-        data = event.data;
-      } else {
-        return;
-      }
+    const data = parseMessageData(event.data);
+    if (!data) return;
 
-      if (data.type === 'WA_EMBEDDED_SIGNUP') {
-        onEmbeddedSignupData(data);
-      }
-    } catch {
-      // Ignore non-JSON or irrelevant messages
+    const embeddedPayload = unwrapEmbeddedSignupPayload(data);
+
+    // Deliberately log metadata only. Never log auth codes, tokens, phone
+    // numbers, WABA ids, or the raw payload.
+    console.info('[WhatsApp Embedded Signup] Meta message received', {
+      origin: event.origin,
+      type: embeddedPayload?.type || data?.type || 'unknown',
+      event: embeddedPayload?.event || data?.event || 'unknown',
+      hasEmbeddedPayload: Boolean(embeddedPayload),
+      hasBusinessData: Boolean(embeddedPayload?.data),
+    });
+
+    if (embeddedPayload) {
+      onEmbeddedSignupData(embeddedPayload);
     }
   };
 };
@@ -118,9 +156,19 @@ export const initWhatsAppEmbeddedSignup = configId => {
   return new Promise((resolve, reject) => {
     window.FB.login(
       response => {
-        if (response.authResponse && response.authResponse.code) {
+        const hasCode = Boolean(response?.authResponse?.code);
+
+        // Keep this diagnostic intentionally free of credentials.
+        console.info('[WhatsApp Embedded Signup] FB.login completed', {
+          status: response?.status || 'unknown',
+          hasAuthResponse: Boolean(response?.authResponse),
+          hasCode,
+          hasError: Boolean(response?.error),
+        });
+
+        if (hasCode) {
           resolve(response.authResponse.code);
-        } else if (response.error) {
+        } else if (response?.error) {
           reject(new Error(response.error));
         } else {
           reject(new Error('Login cancelled'));

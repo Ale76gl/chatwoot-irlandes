@@ -27,11 +27,23 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
   end
 
   def process_events(channel, params, locked_sender_id = nil)
-    if message_echo_event?(params)
+    if history_event?(params)
+      handle_history_event(channel, params)
+    elsif message_echo_event?(params)
       handle_message_echo(channel, params)
     else
       handle_message_events(channel, params, locked_sender_id)
     end
+  end
+
+  def history_event?(params)
+    Array(params[:entry]).any? do |entry|
+      Array(entry[:changes]).any? { |change| change[:field] == 'history' }
+    end
+  end
+
+  def handle_history_event(channel, params)
+    Whatsapp::HistorySyncService.new(inbox: channel.inbox, params: params).perform
   end
 
   # Detects if the webhook is an SMB message echo event (message sent from WhatsApp Business app)
