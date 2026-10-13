@@ -3,7 +3,7 @@ name: Publish Irlandes Chatwoot to GHCR
 on:
   push:
     branches:
-      - develop
+      - irlandes-stable
   workflow_dispatch:
 
 permissions:
