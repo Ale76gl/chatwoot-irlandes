@@ -1,7 +1,13 @@
 class Whatsapp::FacebookApiClient
   BASE_URI = 'https://graph.facebook.com'.freeze
-  # Base webhook fields resent on every subscribe so Meta won't reset to defaults. `calls` is added by callers only when voice is enabled.
-  WEBHOOK_DEFAULT_FIELDS = %w[messages smb_message_echoes].freeze
+  # Base webhook fields resent on every subscribe so Meta won't reset coexistence fields to defaults.
+  # `calls` is added by callers only when voice is enabled.
+  WEBHOOK_DEFAULT_FIELDS = %w[
+    messages
+    history
+    smb_app_state_sync
+    smb_message_echoes
+  ].freeze
 
   def initialize(access_token = nil)
     @access_token = access_token
