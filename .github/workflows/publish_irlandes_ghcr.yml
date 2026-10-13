@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - irlandes-stable
+      - upgrade/v4.18.0-irlandes-1-clean
   workflow_dispatch:
 
 permissions:
