@@ -11,6 +11,24 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
     end
   end
 
+  def send_typing_indicator(message_id)
+    return false if message_id.blank?
+
+    response = HTTParty.post(
+      "#{phone_id_path}/messages",
+      headers: api_headers,
+      body: {
+        messaging_product: 'whatsapp',
+        status: 'read',
+        message_id: message_id,
+        typing_indicator: { type: 'text' }
+      }.to_json
+    )
+
+    Rails.logger.warn("[WHATSAPP] typing indicator failed: #{response.code} #{response.body}") unless response.success?
+    response.success?
+  end
+
   def send_template(phone_number, template_info, message)
     template_body = template_body_parameters(template_info)
 
@@ -240,6 +258,11 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
     }
   end
 
+  def normalized_cta_url(cta)
+    url = (cta['url'] || cta[:url]).to_s
+    url
+  end
+
   def send_interactive_text_message(phone_number, message)
     cta = message.content_attributes['cta_url'] || message.content_attributes[:cta_url]
     payload = if cta.present?
@@ -250,7 +273,7 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
                     name: 'cta_url',
                     parameters: {
                       display_text: cta['display_text'] || cta[:display_text] || 'Ver catálogo',
-                      url: cta['url'] || cta[:url]
+                      url: normalized_cta_url(cta)
                     }
                   }
                 }
@@ -274,3 +297,5 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
 end
 
 Whatsapp::Providers::WhatsappCloudService.prepend_mod_with('Whatsapp::Providers::WhatsappCloudService')
+
+[executed on device: vmi3608008 (e41989c6-c344-4e67-934b-ce2df1568b83)]
