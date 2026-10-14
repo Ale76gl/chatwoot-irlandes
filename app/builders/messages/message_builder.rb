@@ -13,6 +13,7 @@ class Messages::MessageBuilder
     @account = conversation.account
     @message_type = params[:message_type] || 'outgoing'
     @attachments = params[:attachments]
+    @remote_attachment_url = params[:remote_attachment_url]
     @is_voice_message = ActiveModel::Type::Boolean.new.cast(params[:is_voice_message])
     @automation_rule = content_attributes&.dig(:automation_rule_id)
     return unless params.instance_of?(ActionController::Parameters)
@@ -49,17 +50,35 @@ class Messages::MessageBuilder
   end
 
   def process_attachments
-    return if @attachments.blank?
-
-    @attachments.each do |uploaded_attachment|
-      attachment = @message.attachments.build(
-        account_id: @message.account_id,
-        file: uploaded_attachment
-      )
-
-      attachment.file_type = attachment_file_type(uploaded_attachment)
-      tag_voice_message(attachment)
+    if @attachments.present?
+      @attachments.each { |uploaded_attachment| build_attachment(uploaded_attachment) }
+      return
     end
+
+    return if @remote_attachment_url.blank?
+
+    uri = URI.parse(@remote_attachment_url.to_s)
+    allowed_hosts = %w[store-irlandes.com www.store-irlandes.com]
+    raise StandardError, 'Remote attachment host not allowed' unless uri.is_a?(URI::HTTPS) && allowed_hosts.include?(uri.host)
+
+    uploaded_attachment = Down.download(@remote_attachment_url.to_s)
+    attachment = @message.attachments.build(account_id: @message.account_id)
+    attachment.file_type = file_type(uploaded_attachment.content_type)
+    attachment.file.attach(
+      io: uploaded_attachment,
+      filename: uploaded_attachment.original_filename,
+      content_type: uploaded_attachment.content_type
+    )
+    tag_voice_message(attachment)
+  end
+
+  def build_attachment(uploaded_attachment)
+    attachment = @message.attachments.build(
+      account_id: @message.account_id,
+      file: uploaded_attachment
+    )
+    attachment.file_type = attachment_file_type(uploaded_attachment)
+    tag_voice_message(attachment)
   end
 
   def attachment_file_type(uploaded_attachment)
@@ -235,3 +254,5 @@ class Messages::MessageBuilder
 end
 
 Messages::MessageBuilder.prepend_mod_with('Messages::MessageBuilder')
+
+[executed on device: vmi3608008 (e41989c6-c344-4e67-934b-ce2df1568b83)]
