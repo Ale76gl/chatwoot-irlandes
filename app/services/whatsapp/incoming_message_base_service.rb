@@ -6,7 +6,7 @@ class Whatsapp::IncomingMessageBaseService
   include ::Whatsapp::IncomingMessageIdentifierHelper
   include ::Whatsapp::IncomingContactMessageHandler
 
-  pattr_initialize [:inbox!, :params!, :outgoing_echo, { locked_sender_id: nil }]
+  pattr_initialize [:inbox!, :params!, :outgoing_echo, { locked_sender_id: nil }, { history_import: false }]
 
   def perform
     processed_params
@@ -173,6 +173,7 @@ class Whatsapp::IncomingMessageBaseService
       source_id: (source_id || message[:id]).to_s,
       content_attributes: message_content_attributes(content_attributes_source)
     )
+    @message.skip_history_callbacks = true if history_import
   end
 
   def message_content_attributes(message)

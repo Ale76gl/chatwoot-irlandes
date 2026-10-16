@@ -62,8 +62,11 @@ export default {
     isEmbeddedSignupWhatsApp() {
       return this.inbox.provider_config?.source === 'embedded_signup';
     },
+    isManualSetupWhatsApp() {
+      return this.inbox.provider_config?.source === 'manual_setup_v2';
+    },
     showWhatsAppReconfigure() {
-      return this.isEmbeddedSignupWhatsApp;
+      return this.isEmbeddedSignupWhatsApp || this.isManualSetupWhatsApp;
     },
     isForwardingEnabled() {
       return !!this.inbox.forwarding_enabled;
@@ -423,6 +426,19 @@ export default {
           "
         >
           <woot-code :script="inbox.provider_config.webhook_verify_token" />
+        </SettingsFieldSection>
+        <SettingsFieldSection
+          v-if="showWhatsAppReconfigure"
+          label="Completar Coexistence con Meta"
+          help-text="Vincula esta misma bandeja mediante Embedded Signup sin borrar conversaciones ni cambiar el número."
+        >
+          <NextButton
+            :is-loading="isReconfiguring"
+            :disabled="isReconfiguring"
+            @click="reconfigureWhatsApp"
+          >
+            Completar Coexistence
+          </NextButton>
         </SettingsFieldSection>
         <SettingsFieldSection
           :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_TITLE')"
