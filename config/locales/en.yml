@@ -305,6 +305,11 @@ en:
       sla_missed_next_response: 'SLA target next response missed for conversation (#%{display_id})'
       sla_missed_resolution: 'SLA target resolution missed for conversation (#%{display_id})'
     attachment: 'Attachment'
+    attachment_types:
+      image: 'Image'
+      audio: 'Voice message'
+      video: 'Video'
+      file: 'Document'
     no_content: 'No content'
   conversations:
     captain:

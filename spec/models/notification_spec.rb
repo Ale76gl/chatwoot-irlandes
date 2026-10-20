@@ -69,6 +69,16 @@ has been assigned to you"
   end
 
   context 'when push_message_body is called' do
+
+    it 'uses processed text when the original content is blank' do
+      conversation = create(:conversation)
+      message = create(:message, sender: create(:user), content: nil, conversation: conversation)
+      message.update_column(:processed_message_content, 'Synthetic rendered template body')
+      notification = create(:notification, notification_type: 'assigned_conversation_new_message', primary_actor: conversation,
+                                           secondary_actor: message)
+      expect(notification.push_message_body).to eq "#{message.sender.name}: Synthetic rendered template body"
+    end
+
     it 'returns appropriate body suited for the notification type conversation_creation' do
       conversation = create(:conversation)
       message = create(:message, sender: create(:user), content: Faker::Lorem.paragraphs(number: 2), conversation: conversation)
@@ -107,7 +117,7 @@ has been assigned to you"
       message.save!
       notification = create(:notification, notification_type: 'assigned_conversation_new_message', primary_actor: conversation,
                                            secondary_actor: message)
-      expect(notification.push_message_body).to eq "#{message.sender.name}: Attachment"
+      expect(notification.push_message_body).to eq "#{message.sender.name}: avatar.png"
     end
 
     it 'returns appropriate body suited for the notification type participating_conversation_new_message having multple mention' do
