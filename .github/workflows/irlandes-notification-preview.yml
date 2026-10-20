@@ -1,0 +1,22 @@
+name: Irlandes notification preview contracts
+on:
+  pull_request:
+    paths:
+      - 'app/services/notification/message_preview.rb'
+      - 'app/models/notification.rb'
+      - 'test/irlandes/**'
+      - '.github/workflows/irlandes-notification-preview.yml'
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4.4'
+      - run: |
+          ruby -c app/models/notification.rb
+          ruby -c app/services/notification/message_preview.rb
+          ruby test/irlandes/message_preview_test.rb

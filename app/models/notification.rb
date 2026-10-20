@@ -143,14 +143,8 @@ class Notification < ApplicationRecord
   end
 
   def message_content(actor)
-    content = actor.try(:content)
-    attachments = actor.try(:attachments)
-
-    if content.present?
-      transform_user_mention_content(content.truncate_words(10))
-    else
-      attachments.present? ? I18n.t('notifications.attachment') : I18n.t('notifications.no_content')
-    end
+    content = Notification::MessagePreview.new(actor).content
+    transform_user_mention_content(content.truncate_words(10))
   end
 
   def process_notification_delivery
