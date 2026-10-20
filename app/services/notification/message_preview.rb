@@ -20,6 +20,12 @@ class Notification::MessagePreview
     attachment = @message.attachments.first
     return @translate.call('notifications.no_content') unless attachment
 
+    attachment_content(attachment)
+  end
+
+  private
+
+  def attachment_content(attachment)
     title = nonblank(attachment.fallback_title)
     return title if title
     return attachment.file.filename.to_s if attachment.file.attached?
@@ -27,8 +33,6 @@ class Notification::MessagePreview
     type = ATTACHMENT_KEYS[attachment.file_type]
     type ? @translate.call("notifications.attachment_types.#{type}") : @translate.call('notifications.attachment')
   end
-
-  private
 
   def nonblank(value)
     value if value.is_a?(String) && !value.strip.empty?

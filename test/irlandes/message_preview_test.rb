@@ -1,5 +1,5 @@
 # Dependency-free contract checks; Rails/RSpec integration remains separate.
-class Notification; end
+Notification = Class.new
 require_relative '../../app/services/notification/message_preview'
 
 Message = Struct.new(:content, :processed_message_content, :attachments)

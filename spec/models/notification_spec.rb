@@ -69,13 +69,13 @@ has been assigned to you"
   end
 
   context 'when push_message_body is called' do
-
     it 'uses processed text when the original content is blank' do
       conversation = create(:conversation)
       message = create(:message, sender: create(:user), content: nil, conversation: conversation)
-      message.update_column(:processed_message_content, 'Synthetic rendered template body')
+      allow(message).to receive(:processed_message_content).and_return('Synthetic rendered template body')
       notification = create(:notification, notification_type: 'assigned_conversation_new_message', primary_actor: conversation,
                                            secondary_actor: message)
+      allow(notification).to receive(:secondary_actor).and_return(message)
       expect(notification.push_message_body).to eq "#{message.sender.name}: Synthetic rendered template body"
     end
 
